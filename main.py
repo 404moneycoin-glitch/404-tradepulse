@@ -1,9 +1,15 @@
 import os
 import time
+import json
 import requests
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+STATE_FILE = os.getenv(
+    "TRADEPULSE_STATE_FILE",
+    "/data/tradepulse_state.json"
+)
 
 COINS = {
     "BTC": "bitcoin",
@@ -30,13 +36,66 @@ def send_message(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
     try:
-        requests.post(
+        response = requests.post(
             url,
             data={"chat_id": CHAT_ID, "text": text},
             timeout=20
         )
+        response.raise_for_status()
     except Exception as e:
         print("Telegram error:", e, flush=True)
+
+
+def save_state():
+    state = {
+        "cash": cash,
+        "positions": positions,
+        "wins": wins,
+        "losses": losses,
+        "realized_pnl": realized_pnl
+    }
+
+    try:
+        folder = os.path.dirname(STATE_FILE)
+
+        if folder:
+            os.makedirs(folder, exist_ok=True)
+
+        temp_file = STATE_FILE + ".tmp"
+
+        with open(temp_file, "w") as f:
+            json.dump(state, f, indent=2)
+
+        os.replace(temp_file, STATE_FILE)
+
+        print("Portfolio state saved.", flush=True)
+
+    except Exception as e:
+        print("State save error:", e, flush=True)
+
+
+def load_state():
+    global cash, positions, wins, losses, realized_pnl
+
+    if not os.path.exists(STATE_FILE):
+        print("No saved portfolio found. Starting new.", flush=True)
+        save_state()
+        return
+
+    try:
+        with open(STATE_FILE, "r") as f:
+            state = json.load(f)
+
+        cash = float(state.get("cash", STARTING_CASH))
+        positions = state.get("positions", {})
+        wins = int(state.get("wins", 0))
+        losses = int(state.get("losses", 0))
+        realized_pnl = float(state.get("realized_pnl", 0.0))
+
+        print("Saved portfolio loaded.", flush=True)
+
+    except Exception as e:
+        print("State load error:", e, flush=True)
 
 
 def ema(values, period=20):
@@ -90,7 +149,12 @@ def get_market_data(coin_id):
         "days": "1"
     }
 
-    response = requests.get(url, params=params, timeout=20)
+    response = requests.get(
+        url,
+        params=params,
+        timeout=20
+    )
+
     response.raise_for_status()
 
     data = response.json()
@@ -177,6 +241,8 @@ def paper_buy(data):
 
     cash -= TRADE_SIZE
 
+    save_state()
+
     send_message(
         f"🧪 PAPER BUY — {symbol}\n\n"
         f"Entry: ${data['price']:,.4f}\n"
@@ -199,7 +265,6 @@ def paper_sell(data):
     position = positions[symbol]
 
     value = position["amount"] * data["price"]
-
     cost = position["amount"] * position["entry"]
 
     pnl = value - cost
@@ -214,6 +279,8 @@ def paper_sell(data):
         losses += 1
 
     del positions[symbol]
+
+    save_state()
 
     total_trades = wins + losses
 
@@ -260,11 +327,15 @@ def scan():
 
 
 def main():
+    load_state()
+
     send_message(
         "🤖 404 TradePulse is online.\n"
         "Scan. Analyze. Alert.\n\n"
         "🧪 Paper trading mode\n"
-        "Watching: BTC • SOL • XRP"
+        "Watching: BTC • SOL • XRP\n"
+        f"Virtual cash: ${cash:.2f}\n"
+        f"Record: {wins}W / {losses}L"
     )
 
     print("404 TradePulse started.", flush=True)
