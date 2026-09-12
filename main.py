@@ -23,6 +23,9 @@ TRADE_SIZE = 25.00
 CHECK_EVERY = 300
 app = Flask(__name__)
 latest_signals = {}
+@app.route("/signals")
+def signals():
+    return jsonify(latest_signals)
 cash = STARTING_CASH
 positions = {}
 wins = 0
