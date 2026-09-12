@@ -336,7 +336,16 @@ def scan():
             print(symbol, "error:", e, flush=True)
 
 
-def main():
+def main():    port = int(os.getenv("PORT", "8080"))
+    threading.Thread(
+        target=lambda: app.run(
+            host="0.0.0.0",
+            port=port,
+            debug=False,
+            use_reloader=False
+        ),
+        daemon=True
+    ).start()
     load_state()
 
     send_message(
