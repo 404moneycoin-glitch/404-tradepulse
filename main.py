@@ -336,7 +336,7 @@ def scan():
             print(symbol, "error:", e, flush=True)
 def main():
         port = int(os.getenv("PORT", "8080"))
-         threading.Thread(
+        threading.Thread(
         target=lambda: app.run(
             host="0.0.0.0",
             port=port,
