@@ -21,7 +21,8 @@ COINS = {
 STARTING_CASH = 100.00
 TRADE_SIZE = 25.00
 CHECK_EVERY = 300
-
+app = Flask(__name__)
+latest_signals = {}
 cash = STARTING_CASH
 positions = {}
 wins = 0
