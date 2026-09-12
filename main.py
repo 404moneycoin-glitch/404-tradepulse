@@ -334,11 +334,9 @@ def scan():
 
         except Exception as e:
             print(symbol, "error:", e, flush=True)
-
-
-      def main():
-    port = int(os.getenv("PORT", "8080"))
- threading.Thread(
+def main():
+        port = int(os.getenv("PORT", "8080"))
+         threading.Thread(
         target=lambda: app.run(
             host="0.0.0.0",
             port=port,
@@ -347,9 +345,9 @@ def scan():
         ),
         daemon=True
     ).start()
-    load_state()
+        load_state()
 
-    send_message(
+        send_message(
         "🤖 404 TradePulse is online.\n"
         "Scan. Analyze. Alert.\n\n"
         "🧪 Paper trading mode\n"
@@ -358,11 +356,11 @@ def scan():
         f"Record: {wins}W / {losses}L"
     )
 
-    print("404 TradePulse started.", flush=True)
+        print("404 TradePulse started.", flush=True)
 
-    while True:
-        scan()
-        time.sleep(CHECK_EVERY)
+        while True:
+                scan()
+                time.sleep(CHECK_EVERY)
 
 
 if __name__ == "__main__":
