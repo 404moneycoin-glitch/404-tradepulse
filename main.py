@@ -311,7 +311,7 @@ def scan():
         try:
             data = analyze(symbol, coin_id)
 
-            if not data:
+            if data:
                 latest_signals[symbol] = {
     "signal": data["signal"],
     "price": data["price"],
