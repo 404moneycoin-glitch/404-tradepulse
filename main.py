@@ -208,16 +208,16 @@ def analyze(symbol, coin_id):
     if (
         price > ema20
         and 50 <= rsi14 <= 70
-        and momentum > 0.15
-        and volume_ratio > 1.05
+        and momentum > 0.10
+        and volume_ratio > 1.02
     ):
         signal = "BUY"
 
     elif (
         price < ema20
         and 30 <= rsi14 <= 50
-        and momentum < -0.15
-        and volume_ratio > 1.05
+        and momentum < -0.10
+        and volume_ratio > 1.02
     ):
         signal = "SELL"
 
